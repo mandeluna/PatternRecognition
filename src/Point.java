@@ -59,10 +59,16 @@ public class Point implements Comparable<Point> {
      * @return the slope between this point and the specified point
      */
     public double slopeTo(Point that) {
+        if (that == null) {
+            throw new NullPointerException();
+        }
         if (that.x == this.x) {
             return (that.y == this.y) ? Double.NEGATIVE_INFINITY : Double.POSITIVE_INFINITY;
         }
-        return (double)(that.y - this.y) / (that.x - this.x);
+        if (that.y == this.y) {
+            return 0.0;
+        }
+        return (double) (that.y - this.y) / (that.x - this.x);
     }
 
     /**
@@ -78,9 +84,18 @@ public class Point implements Comparable<Point> {
      *         argument point
      */
     public int compareTo(Point that) {
-        if (this.x == that.x && this.y == that.y) return 0;
-        if (this.y < that.y || this.y == that.y && this.x < that.x) return -1;
-        else return 1;
+        if (that == null) {
+            throw new NullPointerException();
+        }
+        if (this.x == that.x && this.y == that.y) {
+            return 0;
+        }
+        if (this.y < that.y || this.y == that.y && this.x < that.x) {
+            return -1;
+        }
+        else {
+            return 1;
+        }
     }
 
     /**
@@ -90,18 +105,24 @@ public class Point implements Comparable<Point> {
      * @return the Comparator that defines this ordering on points
      */
     public Comparator<Point> slopeOrder() {
+        Point origin = this;
         return new Comparator<Point>() {
-
-            // the point (x1, y1) is less than the point (x2, y2) if and only if
-            // the slope (y1 − y0) / (x1 − x0) is less than the slope (y2 − y0) / (x2 − x0).
-            // Treat horizontal, vertical, and degenerate line segments as in the slopeTo() method.
             @Override
             public int compare(Point p1, Point p2) {
-                double slope01 = Point.this.slopeTo(p1);
-                double slope02 = Point.this.slopeTo(p2);
-                if (slope01 < slope02) return -1;
-                else if (slope01 > slope01) return 1;
-                else return 0;
+                if ((p1 == null) || (p2 == null)) {
+                    throw new NullPointerException();
+                }
+                double slope01 = origin.slopeTo(p1);
+                double slope02 = origin.slopeTo(p2);
+                if (slope01 < slope02) {
+                    return -1;
+                }
+                else if (slope01 > slope02) {
+                    return 1;
+                }
+                else {
+                    return 0;
+                }
             }
         };
     }
