@@ -55,6 +55,7 @@ public class FastCollinearPoints {
                         Point origin = anchor.compareTo(points[start]) < 0 ? anchor : points[start];
                         Point endPoint = anchor.compareTo(points[end - 1]) > 0 ? anchor : points[end - 1];
 
+                        // have we already processed this segment in the previous iteration
                         if (!visitedSegment(origin, endPoint)) {
                             visitSegment(origin, endPoint);
                             LineSegment segment = new LineSegment(origin, endPoint);
@@ -67,7 +68,7 @@ public class FastCollinearPoints {
         }
     }
 
-    static <T extends Comparable<T>> int search(List<T> list, T item) {
+    private static <T extends Comparable<T>> int search(List<T> list, T item) {
         if (list == null) {
             throw new NullPointerException();
         }
@@ -86,11 +87,11 @@ public class FastCollinearPoints {
             else {
                 return mid;
             }
-        };
+        }
         return -1;
     }
 
-    static <T extends Comparable<T>> void insert(T item, List<T> list) {
+    private static <T extends Comparable<T>> void insert(T item, List<T> list) {
         if ((list == null) || (item == null)) {
             throw new NullPointerException();
         }
@@ -121,7 +122,7 @@ public class FastCollinearPoints {
         }
     }
 
-    static <T extends Comparable<T>> boolean isSorted(List<T> items) {
+    private static <T extends Comparable<T>> boolean isSorted(List<T> items) {
         if (items == null) {
             throw new NullPointerException();
         }
@@ -155,7 +156,7 @@ public class FastCollinearPoints {
         lookup = search(existing.endPoints, endpoint);
         if (lookup < 0) {
             insert(endpoint, existing.endPoints);
-            assert(isSorted(existing.endPoints));
+            assert (isSorted(existing.endPoints));
         }
         else {
             throw new IllegalArgumentException("Attempt to add already visited segment");
@@ -267,7 +268,6 @@ public class FastCollinearPoints {
                 }
             }
             long now = System.currentTimeMillis();
-            @SuppressWarnings("unused")
             FastCollinearPoints collinear = new FastCollinearPoints(points);
             double time = (double) (System.currentTimeMillis() - now) / 1000;
             StdOut.println(String.format("%6d  %5.2f", n, time));
