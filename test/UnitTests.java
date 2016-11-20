@@ -1,4 +1,4 @@
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
@@ -30,9 +30,4 @@ public class UnitTests {
         Point r = new Point(293, 201);
         assertTrue(p.slopeTo(q) == p.slopeTo(r));
     }
-
-//    *  sign of compare(), where p, q, and r have coordinates in [0, 500)
-//    -  wrong order: slope-ascending, but breaking ties by natural order
-//    -  slope order depends only on the slope, not on the x- or y-coordinates
-
 }
