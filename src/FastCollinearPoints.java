@@ -11,7 +11,7 @@ public class FastCollinearPoints {
 
     private Point[] points;
     private List<LineSegment> segments = new ArrayList<>();
-    private List<SegmentList> visited = new ArrayList<>();
+    private List<PointSlopes> visited = new ArrayList<>();
 
     // finds all line segments containing 4 or more points
     public FastCollinearPoints(Point[] pointArray) {
@@ -52,12 +52,14 @@ public class FastCollinearPoints {
                     if (end - start > 2) {
                         // re-sort the points of interest by natural order to ensure the correct endpoints are produced
                         Arrays.sort(points, start, end);
-                        Point origin = anchor.compareTo(points[start]) < 0 ? anchor : points[start];
+                        int from = anchor.compareTo(points[start]) < 0 ? i : start;
+                        Point origin = points[from];
                         Point endPoint = anchor.compareTo(points[end - 1]) > 0 ? anchor : points[end - 1];
 
                         // have we already processed this segment in the previous iteration
-                        if (!visitedSegment(origin, endPoint)) {
-                            visitSegment(origin, endPoint);
+                        if (!isVisited(anchor, slope)) {
+                            visitSegment(anchor, slope);
+                            visitSegment(points, start, end - 1, slope);
                             LineSegment segment = new LineSegment(origin, endPoint);
                             segments.add(segment);
                         }
@@ -113,7 +115,7 @@ public class FastCollinearPoints {
             else {
                 break;
             }
-        };
+        }
         if (compare > 0) {
             list.add(mid + 1, item);
         }
@@ -141,36 +143,43 @@ public class FastCollinearPoints {
         return true;
     }
 
-    // add all point pairs between start and end to the visited collection
-    private void visitSegment(Point origin, Point endpoint) {
-        SegmentList pair = new SegmentList(origin, endpoint);
+    // add the point and slope to the visited collection
+    private void visitSegment(Point point, double slope) {
+        PointSlopes pair = new PointSlopes(point);
+        List<Double> slopes;
         int lookup = search(visited, pair);
-        // if there is no line with this slope, add an entry and we are done
+        // if there is no line with this slope, add an entry
         if (lookup < 0) {
             insert(pair, visited);
-            return;
-        }
-        // otherwise we can discard the new pair we created and add the origin
-        // to the list of origins already there
-        SegmentList existing = visited.get(lookup);
-        lookup = search(existing.endPoints, endpoint);
-        if (lookup < 0) {
-            insert(endpoint, existing.endPoints);
-            assert (isSorted(existing.endPoints));
+            assert isSorted(visited);
+            slopes = pair.slopes;
         }
         else {
-            throw new IllegalArgumentException("Attempt to add already visited segment");
+            PointSlopes existing = visited.get(lookup);
+            slopes = existing.slopes;
+        }
+        lookup = search(slopes, slope);
+        if (lookup < 0) {
+            insert(slope, slopes);
+            assert isSorted(slopes);
         }
     }
 
-    private boolean visitedSegment(Point origin, Point endpoint) {
-        SegmentList candidate = new SegmentList(origin, endpoint);
+    // add all point pairs between start and end to the visited collection
+    private void visitSegment(Point[] points, int from, int to, double slope) {
+        for (int i = from; i <= to; i++) {
+            visitSegment(points[i], slope);
+        }
+    }
+
+    private boolean isVisited(Point anchor, double slope) {
+        PointSlopes candidate = new PointSlopes(anchor);
         int lookup = search(visited, candidate);
         if (lookup < 0) {
             return false;
         }
-        SegmentList existing = visited.get(lookup);
-        lookup = search(existing.endPoints, endpoint);
+        PointSlopes existing = visited.get(lookup);
+        lookup = search(existing.slopes, slope);
         return lookup >= 0;
     }
 
@@ -268,30 +277,29 @@ public class FastCollinearPoints {
                 }
             }
             long now = System.currentTimeMillis();
-            FastCollinearPoints collinear = new FastCollinearPoints(points);
+            new FastCollinearPoints(points);
             double time = (double) (System.currentTimeMillis() - now) / 1000;
             StdOut.println(String.format("%6d  %5.2f", n, time));
         }
     }
 
-    private class SegmentList implements Comparable<SegmentList> {
+    private class PointSlopes implements Comparable<PointSlopes> {
         private Point origin;
-        private List<Point> endPoints;
+        private List<Double> slopes;
 
-        public SegmentList(Point origin, Point endpoint) {
+        public PointSlopes(Point origin) {
             this.origin = origin;
-            this.endPoints = new ArrayList<>();
-            this.endPoints.add(endpoint);
+            this.slopes = new ArrayList<>();
         }
 
         @Override
-        public int compareTo(SegmentList that) {
+        public int compareTo(PointSlopes that) {
             return this.origin.compareTo(that.origin);
         }
 
         @Override
         public String toString() {
-            return origin + " -> " + Arrays.toString(endPoints.toArray());
+            return origin + " -> " + Arrays.toString(slopes.toArray());
         }
     }
 }
